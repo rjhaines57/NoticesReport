@@ -114,9 +114,10 @@ def process_bom(hub,bom_components):
 
 		logging.debug("component_licenses: {}".format(component_licenses))
 		for license in component_licenses.keys():
+			license_by_component[bom_component_name] = license
 			if not license in licenses:
 				licenses[license]={'components' : [bom_component_name], 'text' : component_licenses[license]['license_text_info']}
-				license_by_component[bom_component_name]=license
+
 			else:
 				licenses[license]['components'].append(bom_component_name)
 
