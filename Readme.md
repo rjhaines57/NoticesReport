@@ -30,6 +30,8 @@ Replace the URL with the url of your BlackDuck instance and add your credentials
 ## Usage
 
 usage: Generate notice report with filtered copyright information
+
+       generate_notices_report.py 
        [-h] [-d] [-nf] [-nd] [-sr] [-o OUTPUT_TEXT]
        [-oh OUTPUT_HTML]   project_name version
 
