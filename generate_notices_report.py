@@ -17,10 +17,10 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger().setLevel(logging.INFO)
 
 
-parser = argparse.ArgumentParser("Retreive BOM component origin information, and additional information, for the given project and version")
-parser.add_argument("project_name")
-parser.add_argument("version")
-parser.add_argument("-d","--debug", action="store_true",help="Enable debug")
+parser = argparse.ArgumentParser("Generate notice report with filtered copyright information")
+parser.add_argument("project_name",help="The name of the project in Blackduck")
+parser.add_argument("version",help="The name of the version in Blackduck")
+parser.add_argument("-d","--debug", action="store_true",help="Enable debug output")
 parser.add_argument("-f","--file")
 parser.add_argument("-nf","--not_filtered", action="store_true")
 parser.add_argument("-nd","--no_date",action="store_true",)
@@ -82,21 +82,22 @@ scan_cache = {}
 licenses = {}
 license_by_component={}
 copyrights = {}
-
+duplicate_check = {}
 
 def process_bom(hub,bom_components):
 
 	logging.info("Processing {} bom entries: ".format(len(bom_components)))
 	count=len(bom_components)
 
-	duplicate_check={}
-	for bom_component in bom_components:
 
+	for bom_component in bom_components:
 
 		if 'componentVersionName' in bom_component:
 			bom_component_name = f"{bom_component['componentName']}:{bom_component['componentVersionName']}"
 		else:
 			bom_component_name = f"{bom_component['componentName']}"
+			logging.warning("Component found with no version: {}".format(bom_component_name))
+			continue
 
 		count=count-1
 		logging.info("Processing: {} {} remaining".format(bom_component_name,count))
@@ -161,13 +162,16 @@ def process_bom(hub,bom_components):
 def generate_text_report():
 
 	output_string="\n"+args.project_name+" "+args.version+"\n========\n\n"
-	for component in copyrights.keys():
+	for component in duplicate_check.keys():
 		output_string=output_string+"\n"
-		for origin in copyrights[component]:
-			output_string=output_string+"{} {}\n".format(component,origin)
-			if component in license_by_component:
-				output_string=output_string+"License: {}\n\n".format(license_by_component[component])
+		output_string = output_string + "{}\n".format(component)
+		if component in license_by_component:
+			output_string = output_string + "License: {}\n\n".format(license_by_component[component])
+		if not component in copyrights:
+			output_string = output_string + "   No Copyrights found"
+			continue
 
+		for origin in copyrights[component]:
 			output_string = output_string + "Copyrights:\n"
 			for copyright in copyrights[component][origin]['copyrights']:
 				output_string=output_string+"  "+ copyright+"\n"
@@ -204,19 +208,24 @@ def generate_html_report():
 """.format(args.project_name,args.version)
 
 
-	for component in copyrights.keys():
+	for component in duplicate_check.keys():
+		output = output + "<h2>{}</h2>".format(component)
+		if component in license_by_component:
+			output = output + "<h4>License: {}</h4>\n".format(license_by_component[component])
+		output = output + "<h4>Copyrights:</h4>\n"
+		if not component in copyrights:
+			output = output + "<p> No Copyrights found </p>\n"
+			continue
+		output = output + "<ul>"
 		for origin in copyrights[component]:
+
 			if not copyrights[component][origin]:
 				continue
-			output=output+"<h2>{} {}</h2>".format(component,origin)
-			if component in license_by_component:
-				output = output + "<h4>License: {}</h4>".format(license_by_component[component])
-			output = output + "<h4>Copyrights:</h4><ul>"
 			for copyright in copyrights[component][origin]['copyrights']:
-				output=output+"<li>{}</li>".format(copyright)
+				output=output+"<li>{}</li>\n".format(copyright)
 			if args.show_rejected:
 				for copyright in copyrights[component][origin]['rejected']:
-					output = output + "<li style=\"color:red;\">REJECTED: {}</li>".format(html2text.html2text(copyright))
+					output = output + "<li style=\"color:red;\">REJECTED: {}</li>\n".format(html2text.html2text(copyright))
 
 			output = output + "</ul>"
 
