@@ -162,9 +162,10 @@ class CopyrightManager:
         rejected_matches = []
         for copyright in self.copyrights:
             url = None
-            if 'processed_copyright' not in copyright:
-                logging.warning("No copyrights found for origin {}".format(self.origin))
+            if not copyright['active']:
+                logging.debug("Skipping inactive copyright")
                 continue
+
             copyright_text=copyright['processed_copyright']
             logging.debug("Trying to match: {}".format(copyright_text))
             # Look for url
