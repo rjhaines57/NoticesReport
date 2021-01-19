@@ -90,7 +90,7 @@ def process_bom(hub,bom_components):
 	count=len(bom_components)
 
 
-	for bom_component in bom_components:
+	for bom_component in bom_components[:5]:
 
 		if 'componentVersionName' in bom_component:
 			bom_component_name = f"{bom_component['componentName']}:{bom_component['componentVersionName']}"
@@ -149,8 +149,10 @@ def process_bom(hub,bom_components):
 					key = origin['name']
 
 				if key not in copyrights:
+					logging.debug("Adding new copyrights for key {} size {}".format(key,len(copyright_list)))
 					copyrights.update({bom_component_name : { key: { 'copyrights' : copyright_list, 'rejected' : rejected_copyrights } }})
 				else:
+					logging.debug("extending copyrights for key {} size {}".format(key,len(copyright_list)))
 					copyrights[bom_component_name][key]['copyrights'].extend(copyright_list)
 					copyrights[bom_component_name][key]['rejected'].extend(rejected_copyrights)
 			#	copyrightmanager.disable_all_copyrights()

@@ -72,8 +72,10 @@ class CopyrightManager:
             if not copyright_entry['active']:
                 continue
 
+            logging.debug("raw copyright:"+copyright_entry['updatedCopyright'])
             # Remove copyright symbols and replace with "(C)"
             copyright_text = copyright_entry['updatedCopyright'].replace("&copy", "(C)").replace("&#169;", "(C)")
+
 
             # Convert any html to text
             copyright_text = html2text.html2text(copyright_text)
@@ -150,6 +152,7 @@ class CopyrightManager:
             copyright_text = regex.sub('".*', '', copyright_text)
             copyright_text = copyright_text.strip()
 
+            logging.debug("processed copyright:" + copyright_text)
             copyright_entry["processed_copyright"]=copyright_text
 
 
@@ -161,8 +164,9 @@ class CopyrightManager:
             url = None
             if 'processed_copyright' not in copyright:
                 logging.warning("No copyrights found for origin {}".format(self.origin))
-                return matches, rejected_matches
+                continue
             copyright_text=copyright['processed_copyright']
+            logging.debug("Trying to match: {}".format(copyright_text))
             # Look for url
             url_re = regex.compile(r"(\({0,1}+(?:https|http)://[^ ]*\){0,1})")
             url_matches = url_re.search(copyright_text)
