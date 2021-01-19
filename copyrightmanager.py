@@ -292,23 +292,33 @@ class CopyrightManager:
         return ','.join(output)
 
 
-    def get_copyrights(self, showRejected=False, annotateResults=False):
+    def get_copyrights(self, showRejected=False, annotateResults=False, unfiltered = False):
 
+        if not unfiltered:
         #Preprocess copyrights to remove noise
-        processed_copyrights=self.preprocess_copyrights()
+            self.preprocess_copyrights()
+            filtered_copyrights,rejected_copyrights=self.filter_copyrights()
 
-        filtered_copyrights,rejected_copyrights=self.filter_copyrights()
+            coalesced_copyrights,non_coalesced_copyrights = self.coalesce_dates(filtered_copyrights)
 
-        coalesced_copyrights,non_coalesced_copyrights = self.coalesce_dates(filtered_copyrights)
-
-
-        output=coalesced_copyrights
-        output.extend(non_coalesced_copyrights)
+            output=coalesced_copyrights
+            output.extend(non_coalesced_copyrights)
         #for output in coalesced_copyrights:
 #            logging.debug(output)
 #        for output in non_coalesced_copyrights:
 #            logging.debug(output)
-        return output,rejected_copyrights
+            return output,rejected_copyrights
 
+        else:
+            output=[]
+            rejected_copyrights=[]
+            for copyright_entry in self.copyrights:
+
+                if not copyright_entry['active']:
+                    continue
+
+                logging.debug("raw copyright:" + copyright_entry['updatedCopyright'])
+                output.append(copyright_entry['updatedCopyright'])
+            return output,rejected_copyrights
 
 

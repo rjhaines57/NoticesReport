@@ -90,7 +90,7 @@ def process_bom(hub,bom_components):
 	count=len(bom_components)
 
 
-	for bom_component in bom_components[:5]:
+	for bom_component in bom_components:
 
 		if 'componentVersionName' in bom_component:
 			bom_component_name = f"{bom_component['componentName']}:{bom_component['componentVersionName']}"
@@ -142,7 +142,7 @@ def process_bom(hub,bom_components):
 				k = link_t[1]
 				url = hub.get_link(origin_details, link_name)
 				copyrightmanager=CopyrightManager(hub,bom_component_name, origin)
-				copyright_list, rejected_copyrights=copyrightmanager.get_copyrights()
+				copyright_list, rejected_copyrights=copyrightmanager.get_copyrights(unfiltered=args.not_filtered)
 				if 'externalId' in origin:
 					key=origin['externalId']
 				else:
