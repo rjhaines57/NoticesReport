@@ -14,7 +14,8 @@ Create a new file called .restconfig.json in the directory where the script is c
  "username": "<username goes here>",
  "password": "<password goes here>",
  "insecure": true,
- "debug": false}
+ "debug": false
+ }
 ```
 Or
 ```
