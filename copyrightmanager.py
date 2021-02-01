@@ -69,6 +69,7 @@ class CopyrightManager:
         processed_copyrights = []
         for copyright_entry in self.copyrights:
 
+            logging.debug("raw copyright:" + copyright_entry['updatedCopyright'])
             if not copyright_entry['active']:
                 continue
 
@@ -213,8 +214,8 @@ class CopyrightManager:
                 if m:
                     date = m.group(1)
                     holder = m.group(2)
-                    # logging.debug(f"    Coerced: {match}")
-                    # logging.debug( "     - Date:"+str(date)+" Holder:"+str(holder))
+                    logging.debug(f"    Coerced: {match}")
+                    logging.debug( "     - Date:"+str(date)+" Holder:"+str(holder))
                     if not holder in newMatches:
                         newMatches[holder] = {'holder': holder, 'date': self.parse_date(date), 'url': matches[match]['url']}
                     else:
@@ -243,7 +244,7 @@ class CopyrightManager:
         return coerced,non_coerced
 
     def parse_date(self, date):
-        date_range = regex.compile(r'([12][90][0-9]{2})[-]([12][90][0-9]{2})')
+        date_range = regex.compile(r'([12][90][0-9]{2})[-]{1,}([12][90][0-9]{2})')
         date = date.replace(" ", "")
         date = regex.sub("-$", "", date)
         date_data = {}
@@ -260,9 +261,14 @@ class CopyrightManager:
                 for k in range(int(start_date), int(end_date) + 1):
                     date_data.update({k: 1})
             else:
-                #
                 if adate != '':
-                    date_data.update({int(adate): 1})
+                    try:
+                        date_data.update({int(adate): 1})
+                    except Exception as e:
+                        logging.warning("Cannot parse date:"+adate+" Defaulted to 1970. ACTION REQUIRED - Please update this manually")
+                        date_data.update({1970:1})
+
+
 
         return date_data
 
